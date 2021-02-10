@@ -2,8 +2,8 @@ from typing import List
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from crud import pegar_tarefas, criar_tarefa
-from models import Base
+from crud import pegar_tarefas, criar_tarefa, pegar_tarefa, atualizar_tarefa, deletar_tarefa
+from models import Base, Tarefa
 from schemas import TarefaID, TarefaBase
 from database import SessionLocal, engine, Base
 
@@ -20,15 +20,31 @@ def get_db():
         db.close()
 
 
+@app.get("/tarefa/{id}", response_model=TarefaID)
+def get_tarefa(id: int, db: Session = Depends(get_db)):
+    db_tarefa = pegar_tarefa(id=id, db=db)
+    if db_tarefa is None:
+        raise HTTPException(404, detail="Tarefa not found")
+    return db_tarefa
 
-@app.get('/tarefas/', response_model=List[TarefaID], status_code=201)
-def listar_tarefas(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@app.get('/tarefas/', response_model=List[TarefaID])
+def listar_tarefas(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
     db_tarefa = pegar_tarefas(db, skip=skip, limit=limit)
     return db_tarefa
 
-@app.post("/tarefas/", response_model=TarefaID)
+@app.post("/tarefa/", response_model=TarefaID, status_code=201)
 def create_tarefa(tarefa: TarefaBase, db: Session = Depends(get_db)):
     db_tarefa = criar_tarefa(db=db, tarefa=tarefa)
     if db_tarefa is None:
         raise HTTPException(400, detail="Solicitação inválida")
+    return db_tarefa
+
+@app.put("/tarefa", response_model=TarefaID)
+def put_tarefa(id: int, tarefa: TarefaBase, db: Session = Depends(get_db)):
+    db_tarefa = atualizar_tarefa(id=id, tarefa=tarefa, db=db)
+    return db_tarefa
+
+@app.delete("/tarefa/{id}", response_model=TarefaID)
+def delete_tarefa(id: int, db: Session = Depends(get_db)):
+    db_tarefa = deletar_tarefa(id, db)
     return db_tarefa
