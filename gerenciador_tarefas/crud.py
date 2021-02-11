@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from models import Tarefa
 from schemas import TarefaBase
 
-from models import *
-from schemas import *
+from models import Tarefa
+from schemas import TarefaBase, TarefaCreate
 
 def pegar_tarefas(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Tarefa).offset(skip).limit(limit).all()
@@ -20,16 +20,18 @@ def criar_tarefa(db: Session, tarefa: TarefaCreate):
     return db_tarefa
 
 def atualizar_tarefa(id: int, tarefa: TarefaBase, db: Session):
+    """Refatorar códifo: Atualizar somente uma parte da tarefa e não toda. """
     db_tarefa = pegar_tarefa(id=id, db=db)
     if db_tarefa is None:
         raise HTTPException(404, detail="Tarefa Not Found")
-    db_tarefa.titulo = tarefa.titulo
-    db_tarefa.descricao = tarefa.descricao
-    db_tarefa.estado = tarefa.estado
+    db_tarefa.titulo = tarefa.titulo if tarefa.titulo != "string" else db_tarefa.titulo
+    db_tarefa.descricao = tarefa.descricao if tarefa.descricao != "string" else db_tarefa.descricao
+    db_tarefa.estado = tarefa.estado if tarefa.estado != "string" else db_tarefa.estado
     db.commit()
     return db_tarefa
 
 def deletar_tarefa(id: int, db: Session):
+    
     db_tarefa = pegar_tarefa(id=id, db=db)
     if db_tarefa is None:
         raise HTTPException(404, detail="Tarefa Not Found")
