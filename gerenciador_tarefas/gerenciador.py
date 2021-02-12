@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -28,8 +28,8 @@ def get_tarefa(id: int, db: Session = Depends(get_db)):
     return db_tarefa
 
 @app.get('/tarefas/', response_model=List[TarefaID])
-def listar_tarefas(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    db_tarefa = pegar_tarefas(db, skip=skip, limit=limit)
+def listar_tarefas(q: Optional[str] = None, skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+    db_tarefa = pegar_tarefas(db, skip=skip, limit=limit, q=q)
     return db_tarefa
 
 @app.post("/tarefa/", response_model=TarefaID, status_code=201)

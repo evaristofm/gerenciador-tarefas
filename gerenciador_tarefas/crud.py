@@ -2,11 +2,15 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models import Tarefa
 from schemas import TarefaBase
+from typing import Optional
 
 from models import Tarefa
 from schemas import TarefaBase, TarefaCreate
 
-def pegar_tarefas(db: Session, skip: int = 0, limit: int = 100):
+def pegar_tarefas(db: Session, skip: int = 0, limit: int = 100, q: Optional[str] = None):
+    if q:
+        return db.query(Tarefa).filter(Tarefa.estado == q).offset(skip).limit(limit).all()
+
     return db.query(Tarefa).offset(skip).limit(limit).all()
 
 def pegar_tarefa(db: Session, id: int):
